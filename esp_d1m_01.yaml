@@ -11,8 +11,8 @@ esphome:
   board: d1_mini
 
 wifi:
-  ssid: !secret ssid_wifi_dvshemext
-  password: !secret pwd_wifi_dvshem
+  ssid: !secret ssid_wifi
+  password: !secret pwd_wifi
   manual_ip:
     static_ip: ${device_ip}
     gateway: x.x.x.x
