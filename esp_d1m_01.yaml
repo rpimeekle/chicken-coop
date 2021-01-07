@@ -1,0 +1,143 @@
+substitutions:
+   device_name: esp_d1m_01
+   device_name_upper: ESP Wemos 01
+   device_icon: mdi:chip
+   device_ip: x.x.x.142
+
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: !secret ssid_wifi_dvshemext
+  password: !secret pwd_wifi_dvshem
+  manual_ip:
+    static_ip: ${device_ip}
+    gateway: x.x.x.x
+    subnet: 255.255.255.0
+    dns1: x.x.x.x
+    dns2: x.x.x.x
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ${device_name_upper} Fallback Hotspot
+    password: !secret pwd_wifi_backupap
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Web Server (optional)
+web_server:
+  port: 80
+
+# Enable Home Assistant API
+api:
+  password: !secret pwd_esp_api_ota
+
+ota:
+  password: !secret pwd_esp_api_ota
+
+############################################################################################
+############################################################################################
+
+# Temperature Sensors:
+dallas:
+  - pin: D2 #D2 for d1_mini
+
+
+# The following can be omitted 
+#  - platform: restart
+#    name: ${devicename} restart 
+
+binary_sensor:
+  - platform: status
+    name: ${device_name} status
+    
+  - platform: gpio
+    name: ${device_name} open limit
+    pin: 
+      number: D7
+      mode: INPUT_PULLUP
+    id: chicken_coop_open_limit
+    filters:
+      - invert:
+  
+  - platform: gpio
+    name: ${device_name} closed limit
+    pin: 
+      number: D1
+      mode: INPUT_PULLUP
+    id: chicken_coop_closed_limit
+    filters:
+      - invert:
+
+sensor:
+  - platform: wifi_signal
+    name: ${device_name} wifi signal
+    update_interval: 600s
+ 
+  - platform: uptime
+    name: ${device_name} uptime
+  
+  # Temperature Sensors
+  - platform: dallas
+    address: 0x9B01192753815E28
+    name: ${device_name} temp external
+
+  - platform: dallas
+    address: 0xF801143018954728
+    name: ${device_name} temp internal
+
+  # Battery Levels
+  - platform: adc
+    pin: A0
+    name: ${device_name} battery level
+    update_interval: 60s
+    filters:
+      - multiply: 18.22
+    
+
+############################################################################################
+############################################################################################   
+    
+output:
+  - platform: esp8266_pwm
+    pin: D3
+    frequency: 1000 Hz
+    id: sh_speed_pin
+  - platform: gpio
+    pin: D5
+    id: sh_direction_pin1
+    inverted: true
+  - platform: gpio
+    pin: D6
+    id: sh_direction_pin2
+    inverted: true
+
+cover:
+  - platform: endstop
+    name: ${device_name} Door Control
+    id: chicken_coop_door
+    
+    open_action:
+      - output.turn_on: sh_direction_pin2
+      - output.turn_on: sh_speed_pin
+    open_duration: 33sec
+    open_endstop: chicken_coop_open_limit
+    
+    close_action:
+      - output.turn_on: sh_direction_pin1
+      - output.turn_on: sh_speed_pin
+    close_duration: 33sec
+    close_endstop: chicken_coop_closed_limit
+    
+    stop_action:
+      - output.turn_off: sh_direction_pin1
+      - output.turn_off: sh_direction_pin2
+      - output.turn_off: sh_speed_pin
+    
+    max_duration: 37sec
