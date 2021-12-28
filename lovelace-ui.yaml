@@ -1,0 +1,127 @@
+button_card_templates:
+  smart_plug:
+    show_state: false
+    show_icon: true
+    hold_action:
+      action: more-info
+    lock:
+      enabled: true
+      duration: 5
+      unlock: tap
+    styles:
+      card:
+        - width: null
+        - height: 200px
+        - border-radius: 15px
+        - padding: 5px
+      grid:
+        - grid-template-areas: '"i" "n" "s"'
+        - grid-template-columns: 1fr
+        - grid-template-rows: 1fr min-content min-content
+      img_cell:
+        - align-self: left
+        - text-align: null
+      icon:
+        - width: 100%
+        - height: 100%
+      name:
+        - font-size: 12px
+        - justify-self: left
+        - padding-left: 10px
+      state:
+        - justify-self: left
+        - padding-left: 10px
+views:
+  - title: Chickens
+    path: chickens
+    type: custom:horizontal-layout
+    icon: mdi:bird
+    badges: []
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:button-card
+                entity: input_boolean.egg_updater
+                name: null
+                template: smart_plug
+                lock: null
+                styles:
+                  card:
+                    - width: null
+                state:
+                  - operator: template
+                    icon: null
+                    color_type: icon
+                    color: grey
+                    value: |
+                      [[[ return entity.state === 'off' ]]]
+                  - operator: template
+                    color: green
+                    color_type: icon
+                    icon: null
+                    value: |
+                      [[[ return entity.state === 'on' ]]]
+              - type: vertical-stack
+                cards:
+                  - type: entity
+                    entity: input_number.egg_counter
+                    state_color: true
+                  - type: entity
+                    entity: input_number.egg_accumulator
+                    state_color: true
+          - type: custom:gap-card
+            height: 20
+      - type: vertical-stack
+        cards:
+          - type: custom:more-info-card
+            entity: cover.esp_d1m_01_door_control
+          - type: horizontal-stack
+            cards:
+              - type: vertical-stack
+                cards:
+                  - type: glance
+                    entities:
+                      - entity: binary_sensor.esp_d1m_01_closed_limit
+                        name: Closed
+                      - entity: binary_sensor.esp_d1m_01_open_limit
+                        name: Open
+                    show_name: true
+                    state_color: true
+                    show_icon: true
+                    show_state: true
+              - type: gauge
+                entity: sensor.esp_d1m_01_battery_level
+                min: 11.6
+                max: 14.5
+                severity:
+                  green: 12.5
+                  yellow: 12
+                  red: 11.6
+                needle: true
+          - type: custom:gap-card
+            height: 20
+      - type: custom:webrtc-camera
+        entity: camera.cam_2_lores
+        intersection: 0.75
+        mse: false
+      - type: statistics-graph
+        entities:
+          - entity: sensor.esp_d1m_01_temp_external
+          - entity: sensor.esp_d1m_01_temp_internal
+        days_to_show: 3
+        stat_types:
+          - mean
+          - sum
+      - type: statistics-graph
+        entities:
+          - sensor.esp_d1m_01_battery_level
+        days_to_show: 3
+        chart_type: line
+        stat_types:
+          - mean
+          - min
+          - max
+          - sum
+title: Home
